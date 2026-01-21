@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { signIn, signUp } from "@/lib/supabase/auth";
+import { serverSignIn } from "@/lib/actions/signin";
+import { signUp } from "@/lib/supabase/auth";
 import { useRouter } from "next/navigation";
 
 export default function Login() {
@@ -15,16 +16,15 @@ export default function Login() {
     e.preventDefault();
     setError(null);
 
-    const { error } = isSignup
-      ? await signUp(email, password)
-      : await signIn(email, password);
+    const result = await serverSignIn(email, password);
 
-    if (error) {
-      setError(error.message);
+    if (result?.error) {
+      setError(result.error);
       return;
     }
 
-    router.push("/dashboard");
+    // Use window.location to trigger full page reload and middleware
+    window.location.href = "/dashboard";
   }
 
   return (
@@ -43,6 +43,7 @@ export default function Login() {
 
         <input
           type="email"
+          name="email"
           placeholder="Email"
           className="w-full rounded border px-3 py-2"
           value={email}
@@ -52,6 +53,7 @@ export default function Login() {
 
         <input
           type="password"
+          name="password"
           placeholder="Password"
           className="w-full rounded border px-3 py-2"
           value={password}
@@ -61,9 +63,10 @@ export default function Login() {
 
         <button
           type="submit"
-          className="w-full rounded bg-blue-600 py-2 text-white hover:bg-blue-700"
+          name="submit"
+          className="w-full rounded bg-blue-600 py-2 text-white"
         >
-          {isSignup ? "Sign up" : "Sign in"}
+          {isSignup ? "Sign Up" : "Sign In"}
         </button>
 
         <button
