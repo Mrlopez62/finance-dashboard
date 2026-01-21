@@ -1,26 +1,37 @@
-"use client";
+import { redirect } from "next/navigation";
+import CsvUpload from "@/components/CsvUpload";
+import { createServerSupabase } from "@/lib/supabase/server";
 
-import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase/client";
-import { useRouter } from "next/navigation";
+export default async function DashboardPage() {
+  const supabase = await createServerSupabase();
 
-export default function Dashboard() {
-  const router = useRouter();
-  const [loading, setLoading] = useState(true);
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      if (!data.session) {
-        router.push("/login");
-      } else {
-        setLoading(false);
-      }
-    });
-  }, [router]);
+  if (!session) {
+    redirect("/login");
+  }
 
-  if (loading) return <p>Loading...</p>;
+  return (
+    <main className="mx-auto max-w-4xl space-y-6 p-6">
+      <header className="space-y-1">
+        <h1 className="text-2xl font-semibold">Dashboard</h1>
+        <p className="text-sm text-gray-500">
+          Upload your transactions to see where your money goes.
+        </p>
+      </header>
 
-  return <h1>Dashboard</h1>;
+      <section className="rounded-lg border bg-black p-4 shadow-sm">
+        <h2 className="mb-2 text-lg font-medium">Upload transactions</h2>
+        <CsvUpload />
+      </section>
+
+      <section className="rounded-lg border bg-black p-4 text-sm text-gray-400">
+        Charts and insights coming next.
+      </section>
+    </main>
+  );
 }
 
 
